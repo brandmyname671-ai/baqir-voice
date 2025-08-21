@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FSMB Network AI Voice — Clone (Admin Ready)</title>
+  <!-- Tailwind via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0b1020;--card:#121834;--accent:#7dd3fc;--muted:#94a3b8}
+    html,body{height:100%}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#0b1020,#0a0f1d 70%)}
+    .glass{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));backdrop-filter:blur(10px)}
+    .btn{padding:.7rem 1rem;border-radius:1rem;font-weight:600}
+    .btn-primary{background:linear-gradient(90deg,#22d3ee,#818cf8);color:white}
+    .btn-ghost{background:rgba(255,255,255,.06);color:white;border:1px solid rgba(255,255,255,.12)}
+    .badge{background:rgba(125,211,252,.15);border:1px solid rgba(125,211,252,.4);color:#7dd3fc;padding:.2rem .5rem;border-radius:.5rem;font-size:.75rem}
+    .hidden{display:none}
+    .link{color:#7dd3fc}
+    .card{background:linear-gradient(180deg,#101736,#0f1530);border:1px solid rgba(255,255,255,.06);border-radius:1.5rem}
+    .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)}
+  </style>
+</head>
+<body class="text-slate-100">
+  <!-- Top bar -->
+  <header class="sticky top-0 z-20 border-b border-white/10 bg-black/30 backdrop-blur">
+    <div class="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-xl bg-cyan-400/20 grid place-items-center border border-cyan-300/30">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="text-cyan-300"><path d="M12 3v18M3 12h18" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight">khan Network AI Voice — Clone</h1>
+          <p class="text-xs text-slate-400 -mt-1">Self‑hosted demo • Admin panel included</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="authStatus" class="badge">Guest</span>
+        <button id="btnLogin" class="btn btn-ghost">Admin Login</button>
+        <button id="btnLogout" class="btn btn-ghost hidden">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-8 space-y-8">
+    <!-- Hero -->
+    <section class="card p-6">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div class="space-y-2">
+          <h2 class="text-2xl md:text-3xl font-semibold">Voice Cloning & TTS</h2>
+          <p class="text-slate-400">Type text, pick a voice, and generate speech. Upload a reference voice (optional) to clone. Downloads appear below.</p>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <span class="badge">No server required for UI</span>
+            <span class="badge">Connect any TTS API</span>
+            <span class="badge">Admin can add voices</span>
+          </div>
+        </div>
+        <div class="rounded-2xl border border-white/10 p-4 glass">
+          <div class="text-xs text-slate-400">API Status</div>
+          <div id="apiStatus" class="text-sm font-semibold">Disconnected</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Generator -->
+    <section class="grid md:grid-cols-3 gap-6">
+      <div class="md:col-span-2 card p-6 space-y-4">
+        <label class="text-sm text-slate-300" for="txt">Your Text</label>
+        <textarea id="txt" class="w-full h-40 rounded-xl bg-white/5 border border-white/10 p-4 outline-none" placeholder="Type something to synthesize..."></textarea>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-slate-300" for="voice">Voice</label>
+            <select id="voice" class="w-full rounded-xl bg-white/5 border border-white/10 p-3"></select>
+          </div>
+          <div>
+            <label class="text-sm text-slate-300" for="style">Style</label>
+            <select id="style" class="w-full rounded-xl bg-white/5 border border-white/10 p-3">
+              <option value="neutral">Neutral</option>
+              <option value="energetic">Energetic</option>
+              <option value="conversational">Conversational</option>
+              <option value="narration">Narration</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label class="text-sm text-slate-300">Reference Voice (optional)</label>
+            <input id="refAudio" type="file" accept="audio/*" class="w-full rounded-xl bg-white/5 border border-white/10 p-2" />
+          </div>
+          <div>
+            <label class="text-sm text-slate-300">API Base URL</label>
+            <input id="apiBase" type="text" placeholder="https://your-server.example.com" class="w-full rounded-xl bg-white/5 border border-white/10 p-3" />
+          </div>
+          <div>
+            <label class="text-sm text-slate-300">API Key</label>
+            <input id="apiKey" type="password" placeholder="sk-..." class="w-full rounded-xl bg-white/5 border border-white/10 p-3" />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button id="btnGenerate" class="btn btn-primary">Generate</button>
+          <button id="btnStop" class="btn btn-ghost">Stop</button>
+          <div id="genStatus" class="text-sm text-slate-400">Idle</div>
+        </div>
+      </div>
+
+      <div class="card p-6 space-y-4">
+        <h3 class="text-lg font-semibold">Quick Voices</h3>
+        <div id="quickVoices" class="grid grid-cols-2 gap-2"></div>
+        <div class="divider"></div>
+        <h3 class="text-lg font-semibold">Download</h3>
+        <div id="downloads" class="space-y-2 text-sm"></div>
+      </div>
+    </section>
+
+    <!-- Admin Panel -->
+    <section id="adminPanel" class="card p-6 hidden">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-semibold">Admin Panel</h3>
+        <span class="badge">Owner</span>
+      </div>
+      <p class="text-slate-400 text-sm mt-1">Manage available voices, change admin password, and export/import config. Admin is local to this page (client‑side) unless you connect your own backend.</p>
+
+      <div class="grid md:grid-cols-2 gap-6 mt-6">
+        <div>
+          <h4 class="font-semibold mb-2">Voices</h4>
+          <div id="voiceList" class="space-y-2"></div>
+          <div class="flex gap-2 mt-3">
+            <input id="newVoiceName" class="flex-1 rounded-xl bg-white/5 border border-white/10 p-3" placeholder="Voice name (e.g., Aurora)"/>
+            <input id="newVoiceId" class="flex-1 rounded-xl bg-white/5 border border-white/10 p-3" placeholder="Voice ID / model"/>
+            <button id="addVoice" class="btn btn-ghost">Add</button>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-2">Security</h4>
+          <input id="newPass" type="password" class="w-full rounded-xl bg-white/5 border border-white/10 p-3" placeholder="New admin password"/>
+          <button id="savePass" class="btn btn-ghost mt-2">Save Password</button>
+
+          <h4 class="font-semibold mt-6 mb-2">Config</h4>
+          <div class="flex gap-2">
+            <button id="exportCfg" class="btn btn-ghost">Export</button>
+            <input id="importFile" type="file" accept="application/json" class="hidden"/>
+            <button id="importCfg" class="btn btn-ghost">Import</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-slate-500 pt-6 pb-10">
+      <div class="divider mb-4"></div>
+      <p>This is a UI clone for demonstration. Connect your own backend TTS/voice‑clone API. Avoid using names/likeness of real people without permission.</p>
+    </footer>
+  </main>
+
+  <script>
+    // ===== Simple client‑side state (localStorage) =====
+    const LS_KEYS = {
+      ADMIN_HASH: 'vc_admin_hash',
+      CONFIG: 'vc_config',
+    };
+
+    // default config
+    const defaultConfig = {
+      voices: [
+        { name: 'Aurora (female)', id: 'aurora' },
+        { name: 'Orion (male)', id: 'orion' },
+        { name: 'Vega (neutral)', id: 'vega' },
+        { name: 'Luna (soft)', id: 'luna' },
+        { name: 'Atlas (bold)', id: 'atlas' },
+        { name: 'Nova (bright)', id: 'nova' },
+      ],
+      adminPasswordHash: null, // set on first login
+    };
+
+    // tiny hash func for demo (NOT cryptographically secure)
+    async function hash(str){
+      const buf = new TextEncoder().encode(str);
+      const digest = await crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+
+    function getConfig(){
+      const raw = localStorage.getItem(LS_KEYS.CONFIG);
+      if(!raw){
+        localStorage.setItem(LS_KEYS.CONFIG, JSON.stringify(defaultConfig));
+        return structuredClone(defaultConfig);
+      }
+      try{ return JSON.parse(raw); } catch{ return structuredClone(defaultConfig); }
+    }
+
+    function setConfig(cfg){
+      localStorage.setItem(LS_KEYS.CONFIG, JSON.stringify(cfg));
+    }
+
+    const els = {
+      voice: document.getElementById('voice'),
+      quick: document.getElementById('quickVoices'),
+      downloads: document.getElementById('downloads'),
+      genStatus: document.getElementById('genStatus'),
+      apiBase: document.getElementById('apiBase'),
+      apiKey: document.getElementById('apiKey'),
+      apiStatus: document.getElementById('apiStatus'),
+      refAudio: document.getElementById('refAudio'),
+      txt: document.getElementById('txt'),
+      style: document.getElementById('style'),
+      btnGenerate: document.getElementById('btnGenerate'),
+      btnStop: document.getElementById('btnStop'),
+      adminPanel: document.getElementById('adminPanel'),
+      authStatus: document.getElementById('authStatus'),
+      btnLogin: document.getElementById('btnLogin'),
+      btnLogout: document.getElementById('btnLogout'),
+      // admin controls
+      voiceList: document.getElementById('voiceList'),
+      newVoiceName: document.getElementById('newVoiceName'),
+      newVoiceId: document.getElementById('newVoiceId'),
+      addVoice: document.getElementById('addVoice'),
+      newPass: document.getElementById('newPass'),
+      savePass: document.getElementById('savePass'),
+      exportCfg: document.getElementById('exportCfg'),
+      importCfg: document.getElementById('importCfg'),
+      importFile: document.getElementById('importFile'),
+    };
+
+    let controller = null; // for aborting requests
+
+    // ===== Auth (client‑only demo) =====
+    async function isAdmin(){
+      const cfg = getConfig();
+      const stored = cfg.adminPasswordHash;
+      // if no password yet, first login sets password
+      if(!stored){ return false; }
+      const session = sessionStorage.getItem(LS_KEYS.ADMIN_HASH);
+      return !!session && session === stored;
+    }
+
+    async function requireLogin(){
+      const cfg = getConfig();
+      const stored = cfg.adminPasswordHash;
+      const pass = prompt(stored ? 'Enter admin password' : 'Create new admin password');
+      if(!pass){ return false; }
+      const h = await hash(pass);
+      if(!stored){
+        cfg.adminPasswordHash = h;
+        setConfig(cfg);
+        sessionStorage.setItem(LS_KEYS.ADMIN_HASH, h);
+        return true;
+      }
+      if(h === stored){
+        sessionStorage.setItem(LS_KEYS.ADMIN_HASH, h);
+        return true;
+      }
+      alert('Wrong password');
+      return false;
+    }
+
+    function logout(){
+      sessionStorage.removeItem(LS_KEYS.ADMIN_HASH);
+      updateAuthUI();
+    }
+
+    async function updateAuthUI(){
+      if(await isAdmin()){
+        els.adminPanel.classList.remove('hidden');
+        els.authStatus.textContent = 'Admin';
+        els.btnLogin.classList.add('hidden');
+        els.btnLogout.classList.remove('hidden');
+      }else{
+        els.adminPanel.classList.add('hidden');
+        els.authStatus.textContent = 'Guest';
+        els.btnLogin.classList.remove('hidden');
+        els.btnLogout.classList.add('hidden');
+      }
+    }
+
+    // ===== Voices UI =====
+    function renderVoices(){
+      const cfg = getConfig();
+      // select
+      els.voice.innerHTML = '';
+      cfg.voices.forEach(v=>{
+        const o = document.createElement('option');
+        o.value = v.id; o.textContent = v.name;
+        els.voice.appendChild(o);
+      });
+      // quick buttons
+      els.quick.innerHTML = '';
+      cfg.voices.slice(0,6).forEach(v=>{
+        const b = document.createElement('button');
+        b.className = 'btn btn-ghost w-full';
+        b.textContent = v.name;
+        b.onclick = ()=>{ els.voice.value = v.id; };
+        els.quick.appendChild(b);
+      });
+      // admin list
+      els.voiceList.innerHTML = '';
+      cfg.voices.forEach((v,idx)=>{
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2';
+        row.innerHTML = `
+          <input data-idx="${idx}" data-field="name" class="flex-1 rounded-lg bg-white/5 border border-white/10 p-2" value="${v.name}">
+          <input data-idx="${idx}" data-field="id" class="flex-1 rounded-lg bg-white/5 border border-white/10 p-2" value="${v.id}">
+          <button data-idx="${idx}" class="btn btn-ghost">Delete</button>`;
+        row.querySelector('button').onclick = ()=>{
+          const cfg = getConfig();
+          cfg.voices.splice(idx,1);
+          setConfig(cfg); renderVoices();
+        };
+        row.querySelectorAll('input').forEach(inp=>{
+          inp.addEventListener('change',()=>{
+            const cfg = getConfig();
+            cfg.voices[inp.dataset.idx][inp.dataset.field] = inp.value;
+            setConfig(cfg);
+            renderVoices();
+          });
+        })
+        els.voiceList.appendChild(row);
+      });
+    }
+
+    els.addVoice.onclick = ()=>{
+      const name = els.newVoiceName.value.trim();
+      const id = els.newVoiceId.value.trim();
+      if(!name || !id){ return alert('Enter both name and id'); }
+      const cfg = getConfig();
+      cfg.voices.push({ name, id });
+      setConfig(cfg); els.newVoiceName.value=''; els.newVoiceId.value='';
+      renderVoices();
+    }
+
+    // ===== Password change =====
+    els.savePass.onclick = async ()=>{
+      if(!(await isAdmin())) return alert('Login as admin first');
+      const p = els.newPass.value.trim();
+      if(!p) return alert('Enter a new password');
+      const cfg = getConfig();
+      cfg.adminPasswordHash = await hash(p);
+      setConfig(cfg);
+      els.newPass.value='';
+      alert('Password updated');
+    }
+
+    // ===== Config export/import =====
+    els.exportCfg.onclick = ()=>{
+      const blob = new Blob([JSON.stringify(getConfig(),null,2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'voice_clone_config.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+    els.importCfg.onclick = ()=> els.importFile.click();
+    els.importFile.onchange = async (e)=>{
+      const file = e.target.files[0]; if(!file) return;
+      const text = await file.text();
+      try{
+        const cfg = JSON.parse(text);
+        setConfig(cfg); renderVoices();
+        alert('Config imported');
+      }catch(err){ alert('Invalid config'); }
+    }
+
+    // ===== Generation =====
+    function updateApiStatus(){
+      const base = els.apiBase.value.trim();
+      els.apiStatus.textContent = base ? 'Configured' : 'Disconnected';
+    }
+
+    els.apiBase.addEventListener('input', updateApiStatus);
+    updateApiStatus();
+
+    function appendDownload(name, blob){
+      const url = URL.createObjectURL(blob);
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-xl p-3';
+      row.innerHTML = `<span>${name}</span>`;
+      const a = document.createElement('a');
+      a.href = url; a.download = name; a.textContent = 'Download';
+      a.className = 'link';
+      row.appendChild(a);
+      els.downloads.prepend(row);
+    }
+
+    els.btnGenerate.onclick = async ()=>{
+      const base = els.apiBase.value.trim();
+      const key = els.apiKey.value.trim();
+      if(!base){ return alert('Set API Base URL first'); }
+      const text = els.txt.value.trim();
+      if(!text){ return alert('Type some text'); }
+      const voice = els.voice.value;
+      const style = els.style.value;
+
+      els.genStatus.textContent = 'Generating...';
+      els.btnGenerate.disabled = true;
+      controller = new AbortController();
+
+      try{
+        // Example JSON body; adapt to your backend contract
+        const form = new FormData();
+        form.append('text', text);
+        form.append('voice', voice);
+        form.append('style', style);
+        if(els.refAudio.files[0]){
+          form.append('reference', els.refAudio.files[0]);
+        }
+
+        const res = await fetch(base.replace(/\/$/, '') + '/api/tts', {
+          method: 'POST',
+          headers: key? { 'Authorization': 'Bearer '+key } : {},
+          body: form,
+          signal: controller.signal,
+        });
+        if(!res.ok) throw new Error('API error: '+res.status);
+        const blob = await res.blob();
+        const filename = `tts_${voice}_${Date.now()}.mp3`;
+        appendDownload(filename, blob);
+        els.genStatus.textContent = 'Done';
+      }catch(err){
+        if(err.name === 'AbortError'){
+          els.genStatus.textContent = 'Stopped';
+        }else{
+          console.error(err);
+          els.genStatus.textContent = 'Failed';
+          alert(err.message || 'Generation failed');
+        }
+      }finally{
+        els.btnGenerate.disabled = false;
+      }
+    }
+
+    els.btnStop.onclick = ()=>{
+      if(controller){ controller.abort(); }
+    }
+
+    // ===== Auth buttons =====
+    els.btnLogin.onclick = async ()=>{ const ok = await requireLogin(); if(ok) updateAuthUI(); };
+    els.btnLogout.onclick = ()=> logout();
+
+    // ===== Init =====
+    renderVoices();
+    updateAuthUI();
+  </script>
+</body>
+</html>
